@@ -11,7 +11,7 @@
         input { font-size: 2rem; padding: 10px; width: 100%; text-align: center; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 20px; box-sizing: border-box; }
         button { background-color: #03a9f4; color: white; border: none; padding: 15px; width: 100%; font-size: 1.2rem; border-radius: 8px; cursor: pointer; transition: background 0.3s; }
         button:active { background-color: #0277bd; }
-        .status { margin-top: 15px; color: #666; font-size: 0.9rem; }
+        .status { margin-top: 15px; color: #666; font-size: 0.9rem; min-height: 20px;}
     </style>
 </head>
 <body>
@@ -24,32 +24,42 @@
 </div>
 
 <script>
-    // HIER DEINE WEBHOOK URL EINFÜGEN (aus Schritt 2):
+    // 🔴 WICHTIG: HIER DEINE WEBHOOK URL WIEDER EINFÜGEN:
     const WEBHOOK_URL = "https://hooks.nabu.casa/gAAAAABpVoaraKrGirtcy15Xix0WOhpBJ7A3uqaSOaShxTtw-NYcLDXutbqDBm8AICAmzV7kteomjLgAii0pQmgw-QuCu6nJo8z6cj633leksck0s-3H-UNW1o1YQ333zmbZC4e_59aneasuaca52XCDhRYSfnOx0Qk_B95CQB-Aqiia7sOwosY="; 
 
     function openDoor() {
         const code = document.getElementById('pincode').value;
         const status = document.getElementById('statusText');
         
-        if (!code) return;
+        if (!code) {
+            status.innerText = "Bitte Code eingeben";
+            status.style.color = "red";
+            return;
+        }
 
         status.innerText = "Sende Signal...";
         status.style.color = "blue";
 
-        // Sendet den Code an Home Assistant
+        // Der Trick: Wir senden es als Formular-Daten mit 'no-cors'
+        // Das verhindert, dass der Browser den Request blockiert.
         fetch(WEBHOOK_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ code: code })
+            mode: "no-cors", // <--- DAS IST DER SCHLÜSSEL!
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: "code=" + encodeURIComponent(code)
         })
         .then(() => {
+            // Da wir 'no-cors' nutzen, bekommen wir keine echte Antwort vom Server,
+            // aber wir gehen davon aus, dass es geklappt hat, wenn kein Netzwerkfehler kam.
             status.innerText = "✅ Signal gesendet!";
             status.style.color = "green";
-            // Optional: Eingabe löschen
             document.getElementById('pincode').value = "";
         })
         .catch(err => {
-            status.innerText = "❌ Fehler: Keine Verbindung";
+            console.error(err);
+            status.innerText = "❌ Fehler: Prüfe Internetverbindung";
             status.style.color = "red";
         });
     }
