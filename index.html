@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Türöffner</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #f0f2f5; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; width: 80%; max-width: 300px; }
+        h1 { margin-top: 0; color: #333; }
+        input { font-size: 2rem; padding: 10px; width: 100%; text-align: center; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 20px; box-sizing: border-box; }
+        button { background-color: #03a9f4; color: white; border: none; padding: 15px; width: 100%; font-size: 1.2rem; border-radius: 8px; cursor: pointer; transition: background 0.3s; }
+        button:active { background-color: #0277bd; }
+        .status { margin-top: 15px; color: #666; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>🔑 Bitte Code eingeben</h1>
+    <input type="tel" id="pincode" placeholder="1234" maxlength="4" autofocus>
+    <button onclick="openDoor()">Tür öffnen</button>
+    <p class="status" id="statusText"></p>
+</div>
+
+<script>
+    // HIER DEINE WEBHOOK URL EINFÜGEN (aus Schritt 2):
+    const WEBHOOK_URL = "https://hooks.nabu.casa/gAAAAABpVoaraKrGirtcy15Xix0WOhpBJ7A3uqaSOaShxTtw-NYcLDXutbqDBm8AICAmzV7kteomjLgAii0pQmgw-QuCu6nJo8z6cj633leksck0s-3H-UNW1o1YQ333zmbZC4e_59aneasuaca52XCDhRYSfnOx0Qk_B95CQB-Aqiia7sOwosY="; 
+
+    function openDoor() {
+        const code = document.getElementById('pincode').value;
+        const status = document.getElementById('statusText');
+        
+        if (!code) return;
+
+        status.innerText = "Sende Signal...";
+        status.style.color = "blue";
+
+        // Sendet den Code an Home Assistant
+        fetch(WEBHOOK_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: code })
+        })
+        .then(() => {
+            status.innerText = "✅ Signal gesendet!";
+            status.style.color = "green";
+            // Optional: Eingabe löschen
+            document.getElementById('pincode').value = "";
+        })
+        .catch(err => {
+            status.innerText = "❌ Fehler: Keine Verbindung";
+            status.style.color = "red";
+        });
+    }
+</script>
+
+</body>
+</html>
